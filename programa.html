@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}{{ programa.nome }} - FIA Girls on Track{% endblock %}
+
+{% block extra_css %}
+<style>
+    .programa-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 2px solid var(--primary-light);
+    }
+
+    .programa-meta {
+        display: flex;
+        gap: 1.5rem;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .meta-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: var(--neutral-light);
+        border-radius: var(--border-radius-sm);
+        color: var(--primary-dark);
+        font-weight: 500;
+    }
+
+    .programa-content {
+        display: grid;
+        gap: 1.5rem;
+    }
+
+    .status-card {
+        text-align: center;
+        padding: 2rem;
+        margin: 2rem 0;
+        border-radius: var(--border-radius);
+    }
+
+    .status-open {
+        background: rgba(40, 167, 69, 0.1);
+        border: 2px solid #28a745;
+        color: #155724;
+    }
+
+    .status-closed {
+        background: rgba(220, 53, 69, 0.1);
+        border: 2px solid #dc3545;
+        color: #721c24;
+    }
+
+    .status-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .aviso-card {
+        border-left: 4px solid var(--accent-yellow);
+        background-color: #fffef6;
+    }
+
+    .aviso-item {
+        padding: 1rem 0;
+        border-bottom: 1px solid rgba(0,0,0,0.1);
+    }
+
+    .aviso-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .aviso-title {
+        margin: 0 0 0.5rem 0;
+        color: var(--accent-orange);
+        font-size: 1.2rem;
+    }
+
+    .aviso-content {
+        color: var(--neutral-dark);
+        line-height: 1.6;
+        white-space: pre-line;
+    }
+
+    .dates-card {
+        border-left: 4px solid var(--primary-light);
+        background-color: #f8fdff;
+    }
+
+    .dates-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .date-box {
+        text-align: center;
+        padding: 1.5rem;
+        background: var(--white);
+        border-radius: var(--border-radius-sm);
+        border: 1px solid var(--neutral-border);
+    }
+
+    .date-label {
+        display: block;
+        font-weight: 600;
+        color: var(--primary-dark);
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .date-value {
+        font-size: 1.25rem;
+        color: var(--primary-medium);
+        font-weight: 600;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+
+    @media (max-width: 768px) {
+        .programa-meta {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .dates-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+        
+        .action-buttons .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="programa-header">
+    <h1>{{ programa.nome }}</h1>
+    <div class="programa-meta">
+        <span class="meta-badge">🏷️ {{ programa.categoria or "Programa Geral" }}</span>
+        {% if programa.ativo %}
+            <span class="meta-badge" style="background-color: rgba(40, 167, 69, 0.1); color: #155724;">✅ Ativo</span>
+        {% else %}
+            <span class="meta-badge" style="background-color: rgba(220, 53, 69, 0.1); color: #721c24;">❌ Inativo</span>
+        {% endif %}
+    </div>
+</div>
+
+<div class="programa-content">
+    <!-- Sobre o Programa -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">📋 Sobre este Programa</h3>
+        </div>
+        <div class="card-body">
+            <p style="white-space: pre-line; line-height: 1.8;">{{ programa.descricao }}</p>
+        </div>
+    </div>
+
+    <!-- Avisos Importantes -->
+    {% if avisos %}
+        <div class="card aviso-card">
+            <div class="card-header">
+                <h3 class="card-title">⚠️ Avisos Importantes</h3>
+            </div>
+            <div class="card-body">
+                <div class="aviso-list">
+                    {% for aviso in avisos %}
+                        <div class="aviso-item">
+                            <h4 class="aviso-title">{{ aviso.titulo }}</h4>
+                            <div class="aviso-content">
+                                {{ aviso.descricao }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Período de Inscrição -->
+    <div class="card dates-card">
+        <div class="card-header">
+            <h3 class="card-title">📅 Período de Inscrição</h3>
+        </div>
+        <div class="card-body">
+            {% if programa.data_abertura or programa.data_fechamento %}
+                <div class="dates-grid">
+                    {% if programa.data_abertura %}
+                        <div class="date-box">
+                            <span class="date-label">Início das Inscrições</span>
+                            <div class="date-value">{{ programa.data_abertura.strftime('%d/%m/%Y') }}</div>
+                        </div>
+                    {% endif %}
+                    {% if programa.data_fechamento %}
+                        <div class="date-box">
+                            <span class="date-label">Término das Inscrições</span>
+                            <div class="date-value">{{ programa.data_fechamento.strftime('%d/%m/%Y') }}</div>
+                        </div>
+                    {% endif %}
+                </div>
+            {% else %}
+                <p class="text-muted text-center">Período de inscrição não definido.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Status das Inscrições -->
+{% if aberto %}
+    <div class="status-card status-open">
+        <div class="status-icon">✅</div>
+        <h3>Inscrições Abertas!</h3>
+        <p>As inscrições para este programa estão abertas. Clique no botão abaixo para se inscrever.</p>
+        <div class="action-buttons">
+            <a href="/inscricao/{{ programa.slug }}" class="btn btn-success btn-lg">
+                ✍️ Realizar Inscrição
+            </a>
+            <a href="/" class="btn btn-outline">← Voltar para Programas</a>
+        </div>
+    </div>
+{% else %}
+    <div class="status-card status-closed">
+        <div class="status-icon">⛔</div>
+        <h3>Inscrições Encerradas</h3>
+        <p>As inscrições para este programa não estão mais abertas no momento. Fique atenta para as próximas edições!</p>
+        <div class="action-buttons">
+            <a href="/" class="btn btn-primary">← Voltar para Programas</a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

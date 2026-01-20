@@ -1,0 +1,629 @@
+{% extends "base.html" %}
+
+{% block title %}Inscrição - {{ programa.nome }} - FIA Girls on Track{% endblock %}
+
+{% block extra_css %}
+<style>
+    .inscricao-hero {
+        background: var(--primary-color);
+        color: white;
+        padding: 2.5rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0.5rem;
+    }
+    
+    .inscricao-hero h1 {
+        font-weight: 700;
+        font-size: 2.25rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-section {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-section h4 {
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--primary-color);
+    }
+    
+    .required-field::after {
+        content: '*';
+        color: var(--primary-color);
+        margin-left: 0.25rem;
+        font-weight: 700;
+    }
+    
+    .form-help {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    
+    .file-preview {
+        max-width: 200px;
+        max-height: 200px;
+        border-radius: 0.5rem;
+        border: 2px solid #dee2e6;
+        margin-top: 1rem;
+        display: none;
+    }
+    
+    .checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .info-alert {
+        background: #e7f3ff;
+        border-left: 4px solid #0066cc;
+        padding: 1rem;
+        border-radius: 0.375rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .info-alert strong {
+        color: #0066cc;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Início</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('programa_detalhe', slug=programa.slug) }}">{{ programa.nome }}</a></li>
+        <li class="breadcrumb-item active">Inscrição</li>
+    </ol>
+</nav>
+
+<div class="inscricao-hero text-center">
+    <div class="container">
+        <h1>Formulário de Inscrição</h1>
+        <p class="mb-0" style="font-size: 1.05rem;">{{ programa.nome }}</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <form method="POST" enctype="multipart/form-data" id="inscricaoForm">
+            
+            <!-- CAMPOS COMUNS -->
+            <div class="form-section">
+                <h4>Dados Pessoais</h4>
+                
+                <div class="mb-3">
+                    <label for="nome" class="form-label required-field">Nome Completo</label>
+                    <input type="text" class="form-control" id="nome" name="nome" required maxlength="200">
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-8 mb-3">
+                        <label for="email" class="form-label required-field">E-mail</label>
+                        <input type="email" class="form-control" id="email" name="email" required maxlength="200">
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <label for="estado" class="form-label required-field">Estado (UF)</label>
+                        <select class="form-select" id="estado" name="estado" required>
+                            <option value="">Selecione</option>
+                            <option value="AC">AC</option>
+                            <option value="AL">AL</option>
+                            <option value="AP">AP</option>
+                            <option value="AM">AM</option>
+                            <option value="BA">BA</option>
+                            <option value="CE">CE</option>
+                            <option value="DF">DF</option>
+                            <option value="ES">ES</option>
+                            <option value="GO">GO</option>
+                            <option value="MA">MA</option>
+                            <option value="MT">MT</option>
+                            <option value="MS">MS</option>
+                            <option value="MG">MG</option>
+                            <option value="PA">PA</option>
+                            <option value="PB">PB</option>
+                            <option value="PR">PR</option>
+                            <option value="PE">PE</option>
+                            <option value="PI">PI</option>
+                            <option value="RJ">RJ</option>
+                            <option value="RN">RN</option>
+                            <option value="RS">RS</option>
+                            <option value="RO">RO</option>
+                            <option value="RR">RR</option>
+                            <option value="SC">SC</option>
+                            <option value="SP">SP</option>
+                            <option value="SE">SE</option>
+                            <option value="TO">TO</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="telefone" class="form-label required-field">Telefone com DDD</label>
+                    <input type="tel" class="form-control" id="telefone" name="telefone" required placeholder="(00) 00000-0000">
+                    <div class="form-help">Formato: (11) 99999-9999</div>
+                </div>
+            </div>
+
+            <!-- CAMPOS ESPECÍFICOS POR PROGRAMA -->
+            
+            {% if programa.slug == 'kart' %}
+            <!-- FORMULÁRIO KART -->
+            <div class="form-section">
+                <h4>Informações Adicionais</h4>
+                
+                <div class="mb-3">
+                    <label for="data_nascimento" class="form-label required-field">Data de Nascimento</label>
+                    <input type="date" class="form-control" id="data_nascimento" name="data_nascimento" required>
+                    <div class="form-help">Exemplo: 31/08/2001</div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="cor" class="form-label required-field">Você se autodeclara como uma pessoa:</label>
+                    <select class="form-select" id="cor" name="cor" required>
+                        <option value="">Selecione</option>
+                        <option value="Branca">Branca</option>
+                        <option value="Preta">Preta</option>
+                        <option value="Parda">Parda</option>
+                        <option value="Amarela">Amarela</option>
+                        <option value="Indígena">Indígena</option>
+                        <option value="Prefiro não declarar">Prefiro não declarar</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h4>Responsável Legal (para menores de 18 anos)</h4>
+                
+                <div class="mb-3">
+                    <label for="nome_responsavel" class="form-label">Nome Completo do Responsável</label>
+                    <input type="text" class="form-control" id="nome_responsavel" name="nome_responsavel">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="telefone_responsavel" class="form-label">Telefone com DDD do Responsável</label>
+                    <input type="tel" class="form-control" id="telefone_responsavel" name="telefone_responsavel" placeholder="(00) 00000-0000">
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h4>Categoria e Informações Físicas</h4>
+                
+                <div class="mb-3">
+                    <label for="tem_condicoes_logistica" class="form-label required-field">Como não disponibilizamos verba de logística e viagem, você tem condições de ir até o local para disputar a seletiva?</label>
+                    <select class="form-select" id="tem_condicoes_logistica" name="tem_condicoes_logistica" required>
+                        <option value="">Selecione</option>
+                        <option value="Sim">Sim</option>
+                        <option value="Não">Não</option>
+                    </select>
+                </div>
+                
+                <div class="info-alert">
+                    <strong>Atenção:</strong> Consulte o regulamento para confirmar sua categoria.
+                </div>
+                
+                <div class="mb-3">
+                    <label for="categoria" class="form-label required-field">Qual categoria você vai participar na Seletiva?</label>
+                    <select class="form-select" id="categoria" name="categoria" required>
+                        <option value="">Selecione</option>
+                        <option value="Kids">Kids (Altura mínima: 1,40m; peso mínimo 38kg; de 10 a 14 anos completos em 2025)</option>
+                        <option value="Junior">Júnior (De 15 a 22 anos completos em 2026)</option>
+                    </select>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="peso" class="form-label required-field">Qual é o seu peso?</label>
+                        <input type="text" class="form-control" id="peso" name="peso" placeholder="Ex: 40kg" required>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="altura" class="form-label required-field">Qual é a sua altura?</label>
+                        <input type="text" class="form-control" id="altura" name="altura" placeholder="Ex: 1,67" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h4>Equipamentos e Experiência</h4>
+                
+                <div class="mb-3">
+                    <label class="form-label">Você tem vestuário completo para participar das provas?</label>
+                    <div class="form-help mb-2">Marque todos os itens que você possui:</div>
+                    <div class="checkbox-group">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="vestuario" value="Capacete" id="vest1">
+                            <label class="form-check-label" for="vest1">Capacete</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="vestuario" value="Macacão" id="vest2">
+                            <label class="form-check-label" for="vest2">Macacão</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="vestuario" value="Luvas" id="vest3">
+                            <label class="form-check-label" for="vest3">Luvas</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="vestuario" value="Bota" id="vest4">
+                            <label class="form-check-label" for="vest4">Bota</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="vestuario" value="Protetor de Costela" id="vest5">
+                            <label class="form-check-label" for="vest5">Protetor de Costela</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="vestuario" value="Não possuo nenhum" id="vest6">
+                            <label class="form-check-label" for="vest6">Não possuo nenhum</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="categoria_atual" class="form-label">Você compete em alguma categoria atualmente? Se sim, quais?</label>
+                    <input type="text" class="form-control" id="categoria_atual" name="categoria_atual" placeholder="Ex: Cadete, Júnior Menor, etc.">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="titulos_resultados" class="form-label">Conte um pouquinho sobre seus títulos e resultados dos últimos 3 anos</label>
+                    <textarea class="form-control" id="titulos_resultados" name="titulos_resultados" rows="4" placeholder="Descreva seus principais resultados e conquistas..."></textarea>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h4>Foto</h4>
+                
+                <div class="mb-3">
+                    <label for="foto" class="form-label required-field">Envie sua foto</label>
+                    <input type="file" class="form-control" id="foto" name="foto" accept=".png,.jpg,.jpeg" required>
+                    <div class="form-help">Formatos: PNG, JPG ou JPEG (máx. 25MB)</div>
+                    <img id="previewFoto" class="file-preview" alt="Preview da foto">
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h4>Autorização (Menores de 18 anos)</h4>
+                
+                <div class="info-alert">
+                    <strong>Importante:</strong> Para menores de 18 anos, é necessário autorização do responsável legal. 
+                    <a href="https://drive.google.com/file/d/1vkCpkkYhztJlNzeoYnAVPbIhjbEWCyxH/view?usp=sharing" target="_blank" rel="noopener">Clique aqui para acessar o documento</a>. 
+                    Se for selecionada, leve o documento impresso e assinado no dia!
+                </div>
+                
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="autorizacao_responsavel" name="autorizacao_responsavel">
+                    <label class="form-check-label" for="autorizacao_responsavel">
+                        Li e compreendi as informações sobre autorização (para menores de 18 anos)
+                    </label>
+                </div>
+            </div>
+
+            {% elif programa.slug == 'imersao' %}
+            <!-- FORMULÁRIO IMERSÃO -->
+            <div class="form-section">
+                <h4>Informações Adicionais</h4>
+                
+                <div class="mb-3">
+                    <label for="cidade" class="form-label required-field">Cidade</label>
+                    <input type="text" class="form-control" id="cidade" name="cidade" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="escolaridade" class="form-label required-field">Escolaridade</label>
+                    <select class="form-select" id="escolaridade" name="escolaridade" required>
+                        <option value="">Selecione</option>
+                        <option value="Ensino Médio Cursando">Ensino Médio - Cursando</option>
+                        <option value="Ensino Médio Completo">Ensino Médio - Completo</option>
+                        <option value="Ensino Superior Cursando">Ensino Superior - Cursando</option>
+                        <option value="Ensino Superior Completo">Ensino Superior - Completo</option>
+                        <option value="Pós-Graduação">Pós-Graduação</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="participou_antes" class="form-label required-field">Já participou de alguma imersão anterior?</label>
+                    <select class="form-select" id="participou_antes" name="participou_antes" required>
+                        <option value="">Selecione</option>
+                        <option value="Sim">Sim</option>
+                        <option value="Não">Não</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="modulo_interesse" class="form-label required-field">Qual módulo você tem interesse?</label>
+                    <select class="form-select" id="modulo_interesse" name="modulo_interesse" required>
+                        <option value="">Selecione</option>
+                        <option value="Engenharia">Engenharia</option>
+                        <option value="Mecânica">Mecânica</option>
+                        <option value="Comunicação">Comunicação</option>
+                        <option value="Inspiração">Inspiração</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="como_ficou_sabendo" class="form-label">Como ficou sabendo do programa?</label>
+                    <input type="text" class="form-control" id="como_ficou_sabendo" name="como_ficou_sabendo" placeholder="Ex: Instagram, amiga, evento, etc.">
+                </div>
+            </div>
+
+            {% elif programa.slug == 'estagio-motorsport' %}
+            <!-- FORMULÁRIO ESTÁGIO -->
+            <div class="form-section">
+                <h4>Informações Pessoais</h4>
+                
+                <div class="mb-3">
+                    <label for="data_nascimento" class="form-label required-field">Data de Nascimento</label>
+                    <input type="date" class="form-control" id="data_nascimento" name="data_nascimento" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="identidade_genero" class="form-label required-field">Identidade de Gênero</label>
+                    <select class="form-select" id="identidade_genero" name="identidade_genero" required>
+                        <option value="">Selecione</option>
+                        <option value="Mulher Cisgênero">Mulher Cisgênero</option>
+                        <option value="Mulher Transgênero">Mulher Transgênero</option>
+                        <option value="Não-binário">Não-binário</option>
+                        <option value="Prefiro não declarar">Prefiro não declarar</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="cor" class="form-label required-field">Você se autodeclara como uma pessoa:</label>
+                    <select class="form-select" id="cor" name="cor" required>
+                        <option value="">Selecione</option>
+                        <option value="Branca">Branca</option>
+                        <option value="Preta">Preta</option>
+                        <option value="Parda">Parda</option>
+                        <option value="Amarela">Amarela</option>
+                        <option value="Indígena">Indígena</option>
+                        <option value="Prefiro não declarar">Prefiro não declarar</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="participou_fia_got" class="form-label required-field">Já participou do FIA Girls on Track?</label>
+                    <select class="form-select" id="participou_fia_got" name="participou_fia_got" required>
+                        <option value="">Selecione</option>
+                        <option value="Sim">Sim</option>
+                        <option value="Não">Não</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h4>Área Profissional</h4>
+                
+                <div class="mb-3">
+                    <label for="area_atuacao" class="form-label required-field">Área de Atuação/Interesse</label>
+                    <select class="form-select" id="area_atuacao" name="area_atuacao" required>
+                        <option value="">Selecione</option>
+                        <option value="Engenharia">Engenharia</option>
+                        <option value="Mecânica">Mecânica</option>
+                        <option value="Comunicação">Comunicação</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Gestão">Gestão</option>
+                        <option value="Operações">Operações</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label required-field">Deseja se inscrever em qual ativação?</label>
+                    <div class="form-help mb-2">Pode escolher mais de uma opção</div>
+                    <div class="checkbox-group">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="ativacoes" value="Stock Car" id="ativ1">
+                            <label class="form-check-label" for="ativ1">Stock Car</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="ativacoes" value="Porsche Cup" id="ativ2">
+                            <label class="form-check-label" for="ativ2">Porsche Cup</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="ativacoes" value="Formula E" id="ativ3">
+                            <label class="form-check-label" for="ativ3">Fórmula E</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="ativacoes" value="Endurance" id="ativ4">
+                            <label class="form-check-label" for="ativ4">Endurance Brasil</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="ordem_preferencia" class="form-label">Se você se inscreveu em mais de uma opção, coloque a ordem de preferência</label>
+                    <input type="text" class="form-control" id="ordem_preferencia" name="ordem_preferencia" placeholder="Ex: 1º Stock Car, 2º Porsche Cup, 3º Formula E">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="tem_cnh" class="form-label">Possui CNH?</label>
+                    <select class="form-select" id="tem_cnh" name="tem_cnh">
+                        <option value="">Selecione</option>
+                        <option value="Sim">Sim</option>
+                        <option value="Não">Não</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h4>Documentos</h4>
+                
+                <div class="mb-3">
+                    <label for="curriculo" class="form-label required-field">Anexe seu Currículo (PDF)</label>
+                    <input type="file" class="form-control" id="curriculo" name="curriculo" accept=".pdf" required>
+                    <div class="form-help">Apenas arquivos PDF (máx. 25MB)</div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="foto" class="form-label required-field">Envie sua foto</label>
+                    <input type="file" class="form-control" id="foto" name="foto" accept=".png,.jpg,.jpeg" required>
+                    <div class="form-help">Formatos: PNG, JPG ou JPEG (máx. 25MB)</div>
+                    <img id="previewFoto" class="file-preview" alt="Preview da foto">
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h4>Informações Complementares</h4>
+                
+                <div class="mb-3">
+                    <label for="linkedin" class="form-label">LinkedIn (se tiver)</label>
+                    <input type="url" class="form-control" id="linkedin" name="linkedin" placeholder="https://www.linkedin.com/in/seu-perfil">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="mini_bio" class="form-label required-field">Nos conte um pouco sobre você e sua relação com o automobilismo (Mini Bio)</label>
+                    <textarea class="form-control" id="mini_bio" name="mini_bio" rows="5" required placeholder="Conte sua história, experiências e paixão pelo automobilismo..."></textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="porque_importante" class="form-label required-field">Por que esta experiência será importante para você?</label>
+                    <textarea class="form-control" id="porque_importante" name="porque_importante" rows="4" required placeholder="Explique o que você espera aprender e como isso impactará sua carreira..."></textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="como_ficou_sabendo" class="form-label">Como ficou sabendo do projeto?</label>
+                    <input type="text" class="form-control" id="como_ficou_sabendo" name="como_ficou_sabendo" placeholder="Ex: Instagram, LinkedIn, amiga, evento, etc.">
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h4>Consentimento</h4>
+                
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="concordo_compartilhamento" name="concordo_compartilhamento" required>
+                    <label class="form-check-label" for="concordo_compartilhamento">
+                        <strong>Ao preencher este formulário você concorda em compartilhar seus dados pessoais com a CFA e parceiros, para a finalidade exclusiva do Estágio em Motorsports 2026</strong>
+                    </label>
+                </div>
+            </div>
+
+            {% elif programa.slug == 'e-sports' %}
+            <!-- FORMULÁRIO E-SPORTS -->
+            <div class="form-section">
+                <h4>Informações do Competidor</h4>
+                
+                <div class="mb-3">
+                    <label for="idade" class="form-label required-field">Idade</label>
+                    <input type="number" class="form-control" id="idade" name="idade" min="14" max="99" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="cidade" class="form-label required-field">Cidade</label>
+                    <input type="text" class="form-control" id="cidade" name="cidade" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="nickname" class="form-label">Nick/Gamertag</label>
+                    <input type="text" class="form-control" id="nickname" name="nickname" placeholder="Seu nome no simulador">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="plataforma" class="form-label required-field">Plataforma</label>
+                    <select class="form-select" id="plataforma" name="plataforma" required>
+                        <option value="">Selecione</option>
+                        <option value="PC">PC</option>
+                        <option value="PlayStation">PlayStation</option>
+                        <option value="Xbox">Xbox</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="experiencia" class="form-label">Experiência com simuladores de corrida</label>
+                    <select class="form-select" id="experiencia" name="experiencia">
+                        <option value="">Selecione</option>
+                        <option value="Iniciante">Iniciante</option>
+                        <option value="Intermediário">Intermediário</option>
+                        <option value="Avançado">Avançado</option>
+                        <option value="Profissional">Profissional</option>
+                    </select>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- BOTÕES -->
+            <div class="d-flex gap-3 justify-content-between mb-4">
+                <a href="{{ url_for('programa_detalhe', slug=programa.slug) }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Voltar
+                </a>
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-send-fill me-2"></i>Enviar Inscrição
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Preview da foto
+    const fotoInput = document.getElementById('foto');
+    if (fotoInput) {
+        fotoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('previewFoto');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    
+    // Máscara de telefone
+    const telefoneInput = document.getElementById('telefone');
+    if (telefoneInput) {
+        telefoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 11) value = value.slice(0, 11);
+            
+            if (value.length > 10) {
+                value = value.replace(/^(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+            } else if (value.length > 5) {
+                value = value.replace(/^(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+            } else if (value.length > 2) {
+                value = value.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+            }
+            
+            e.target.value = value;
+        });
+    }
+    
+    // Máscara telefone responsável
+    const telefoneRespInput = document.getElementById('telefone_responsavel');
+    if (telefoneRespInput) {
+        telefoneRespInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 11) value = value.slice(0, 11);
+            
+            if (value.length > 10) {
+                value = value.replace(/^(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+            } else if (value.length > 5) {
+                value = value.replace(/^(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+            } else if (value.length > 2) {
+                value = value.replace(/^(\d{2})(\d{0,5})/, '($1) $2');
+            }
+            
+            e.target.value = value;
+        });
+    }
+    
+    // Confirmação antes de enviar
+    document.getElementById('inscricaoForm').addEventListener('submit', function(e) {
+        const nome = document.getElementById('nome').value;
+        if (!confirm(`Confirma o envio da inscrição para "${nome}"?`)) {
+            e.preventDefault();
+        }
+    });
+</script>
+{% endblock %}

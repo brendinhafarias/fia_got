@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}FIA Girls on Track - Programas{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        text-align: center;
+        padding: 3rem 1rem;
+        background: linear-gradient(135deg, rgba(34, 50, 101, 0.1) 0%, rgba(114, 77, 153, 0.1) 100%);
+        border-radius: var(--border-radius);
+        margin-bottom: 3rem;
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-medium) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .hero-subtitle {
+        font-size: 1.2rem;
+        color: var(--neutral-gray);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .programs-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .program-card {
+        background: var(--white);
+        border-radius: var(--border-radius);
+        padding: 1.75rem;
+        border: 1px solid var(--neutral-border);
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .program-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary-light);
+    }
+
+    .program-header {
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--primary-light);
+    }
+
+    .program-title {
+        margin: 0;
+        color: var(--primary-dark);
+        font-size: 1.5rem;
+    }
+
+    .program-description {
+        color: var(--neutral-gray);
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        flex-grow: 1;
+    }
+
+    .program-dates {
+        background-color: var(--neutral-light);
+        padding: 1rem;
+        border-radius: var(--border-radius-sm);
+        margin-bottom: 1.5rem;
+        border-left: 3px solid var(--accent-orange);
+    }
+
+    .date-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .date-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .date-label {
+        font-weight: 600;
+        color: var(--primary-dark);
+        font-size: 0.9rem;
+    }
+
+    .date-value {
+        color: var(--neutral-gray);
+        font-size: 0.9rem;
+    }
+
+    .program-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: auto;
+    }
+
+    .program-actions .btn {
+        flex: 1;
+        text-align: center;
+    }
+
+    .status-closed {
+        background-color: var(--neutral-light);
+        color: var(--neutral-gray);
+        border: 1px solid var(--neutral-border);
+        cursor: not-allowed;
+    }
+
+    .info-card {
+        margin-top: 2rem;
+        border-top: 3px solid var(--accent-yellow);
+    }
+
+    .steps-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .step-item {
+        text-align: center;
+        padding: 1rem;
+    }
+
+    .step-number {
+        width: 40px;
+        height: 40px;
+        background: var(--primary-medium);
+        color: var(--white);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin: 0 auto 1rem;
+        font-size: 1.2rem;
+    }
+
+    .step-text {
+        color: var(--neutral-dark);
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2rem;
+        }
+        
+        .programs-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .program-actions {
+            flex-direction: column;
+        }
+        
+        .steps-list {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <h1 class="hero-title">🏎️ FIA Girls on Track</h1>
+    <p class="hero-subtitle">Quebrando Barreiras, Abrindo Portas para o Futuro das Mulheres no Automobilismo
+</p>
+</div>
+
+<div class="programs-grid">
+    {% for programa in programas %}
+        <div class="program-card">
+            <div class="program-header">
+                <h3 class="program-title">{{ programa.nome }}</h3>
+            </div>
+            
+            <p class="program-description">
+                {{ programa.descricao_curta }}
+            </p>
+
+            {% if programa.data_abertura or programa.data_fechamento %}
+                <div class="program-dates">
+                    {% if programa.data_abertura %}
+                        <div class="date-item">
+                            <span class="date-label">Abertura:</span>
+                            <span class="date-value">{{ programa.data_abertura.strftime('%d/%m/%Y') }}</span>
+                        </div>
+                    {% endif %}
+                    {% if programa.data_fechamento %}
+                        <div class="date-item">
+                            <span class="date-label">Encerramento:</span>
+                            <span class="date-value">{{ programa.data_fechamento.strftime('%d/%m/%Y') }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <div class="program-actions">
+                <a href="/programa/{{ programa.slug }}" class="btn btn-outline">Saiba Mais</a>
+                
+                {% set aberto = True %}
+                {% if programa.data_abertura and hoje < programa.data_abertura %}
+                    {% set aberto = False %}
+                {% endif %}
+                {% if programa.data_fechamento and hoje > programa.data_fechamento %}
+                    {% set aberto = False %}
+                {% endif %}
+
+                {% if aberto %}
+                    <a href="/inscricao/{{ programa.slug }}" class="btn btn-primary">Inscrever-se</a>
+                {% else %}
+                    <button class="btn status-closed" disabled>⛔ Inscrições Fechadas</button>
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="card info-card">
+    <h3>📋 Como funciona o processo de inscrição?</h3>
+    
+    <div class="steps-list">
+        <div class="step-item">
+            <div class="step-number">1</div>
+            <p class="step-text">Escolha o programa que melhor se encaixa no seu perfil e objetivos</p>
+        </div>
+        
+        <div class="step-item">
+            <div class="step-number">2</div>
+            <p class="step-text">Leia atentamente todas as informações e avisos importantes</p>
+        </div>
+        
+        <div class="step-item">
+            <div class="step-number">3</div>
+            <p class="step-text">Preencha o formulário completo com seus dados pessoais</p>
+        </div>
+        
+       
+        <div class="step-item">
+            <div class="step-number">4</div>
+            <p class="step-text">Receba confirmação da inscrição em seu email cadastrado</p>
+        </div>
+        
+        <div class="step-item">
+            <div class="step-number">5</div>
+            <p class="step-text">Aguarde a avaliação da nossa equipe - resposta em até 30 dias antes da etapa</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

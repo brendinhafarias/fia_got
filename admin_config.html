@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+
+{% block title %}Configurações Admin - FIA Girls on Track{% endblock %}
+
+{% block extra_css %}
+<style>
+    .tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+        border-bottom: 2px solid var(--neutral-border);
+        padding-bottom: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .tab {
+        background: none;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-bottom: 3px solid transparent;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--neutral-gray);
+        transition: all 0.2s ease;
+        border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0;
+    }
+
+    .tab:hover {
+        color: var(--primary-dark);
+        background-color: var(--neutral-light);
+    }
+
+    .tab.active {
+        color: var(--primary-medium);
+        border-bottom-color: var(--primary-medium);
+        background-color: var(--neutral-light);
+    }
+
+    .tab-content {
+        display: none;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .config-section {
+        margin-bottom: 2rem;
+    }
+
+    .config-section-header {
+        border-bottom: 2px solid var(--primary-light);
+        padding-bottom: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .config-section-header h3 {
+        color: var(--primary-dark);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .aviso-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .aviso-item {
+        background: var(--white);
+        border-radius: var(--border-radius-sm);
+        padding: 1.25rem;
+        border: 1px solid var(--neutral-border);
+        transition: all 0.2s ease;
+    }
+
+    .aviso-item:hover {
+        box-shadow: var(--shadow-sm);
+    }
+
+    .aviso-item.inactive {
+        opacity: 0.6;
+        background-color: var(--neutral-light);
+    }
+
+    .aviso-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.75rem;
+    }
+
+    .aviso-title {
+        margin: 0;
+        color: var(--primary-dark);
+        font-size: 1.1rem;
+    }
+
+    .aviso-programa {
+        font-size: 0.85rem;
+        color: var(--primary-medium);
+        font-weight: 500;
+        margin-top: 0.25rem;
+    }
+
+    .aviso-descricao {
+        color: var(--neutral-dark);
+        line-height: 1.5;
+        margin-bottom: 1rem;
+    }
+
+    .aviso-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+    }
+
+    .programa-config {
+        background: var(--white);
+        border-radius: var(--border-radius-sm);
+        padding: 1.5rem;
+        border: 1px solid var(--neutral-border);
+        margin-bottom: 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .programa-config:hover {
+        box-shadow: var(--shadow-sm);
+    }
+
+    .programa-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--neutral-border);
+    }
+
+    .programa-name {
+        margin: 0;
+        color: var(--primary-dark);
+        font-size: 1.2rem;
+    }
+
+    .programa-active {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .programa-active label {
+        font-weight: 500;
+        color: var(--neutral-gray);
+        cursor: pointer;
+    }
+
+    .programa-dates {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: var(--neutral-gray);
+    }
+
+    .empty-state-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--neutral-border);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>⚙️ Configurações do Sistema</h1>
+    <p>Configure emails, períodos e avisos do sistema</p>
+</div>
+
+<div class="tabs">
+    <button class="tab active" data-tab="email">📧 Configurações de Email</button>
+    <button class="tab" data-tab="periodos">📅 Períodos de Inscrição</button>
+    <button class="tab" data-tab="avisos">⚠️ Avisos do Sistema</button>
+</div>
+
+<!-- Tab: Email -->
+<div id="email" class="tab-content active">
+    <div class="config-section">
+        <div class="config-section-header">
+            <h3>📧 Configuração de Email de Confirmação</h3>
+        </div>
+        
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="template_assunto" class="form-label">Assunto do Email</label>
+                        <input type="text" id="template_assunto" name="template_assunto" class="form-control" value="{{ config_email.template_assunto }}" required>
+                        <small class="text-muted">Use {nome} e {programa} como placeholders</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="template_corpo" class="form-label">Corpo do Email</label>
+                        <textarea id="template_corpo" name="template_corpo" class="form-control" rows="8" required>{{ config_email.template_corpo }}</textarea>
+                        <small class="text-muted">Use {nome} e {programa} como placeholders. Exemplo: "Olá {nome}, recebemos sua inscrição para {programa}."</small>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-success">💾 Salvar Configurações</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tab: Períodos -->
+<div id="periodos" class="tab-content">
+    <div class="config-section">
+        <div class="config-section-header">
+            <h3>📅 Datas de Inscrição dos Programas</h3>
+        </div>
+        
+        <form method="POST">
+            {% for programa in programas %}
+                <div class="programa-config">
+                    <div class="programa-header">
+                        <h4 class="programa-name">{{ programa.nome }}</h4>
+                        <div class="programa-active">
+                            <input type="checkbox" id="programa_{{ programa.id }}_ativo" name="programa_{{ programa.id }}_ativo" {% if programa.ativo %}checked{% endif %}>
+                            <label for="programa_{{ programa.id }}_ativo">Programa ativo</label>
+                        </div>
+                    </div>
+
+                    <div class="programa-dates">
+                        <div class="form-group">
+                            <label for="programa_{{ programa.id }}_data_abertura" class="form-label">Data de Abertura</label>
+                            <input type="date" id="programa_{{ programa.id }}_data_abertura" name="programa_{{ programa.id }}_data_abertura" class="form-control" value="{% if programa.data_abertura %}{{ programa.data_abertura.strftime('%Y-%m-%d') }}{% endif %}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="programa_{{ programa.id }}_data_fechamento" class="form-label">Data de Fechamento</label>
+                            <input type="date" id="programa_{{ programa.id }}_data_fechamento" name="programa_{{ programa.id }}_data_fechamento" class="form-control" value="{% if programa.data_fechamento %}{{ programa.data_fechamento.strftime('%Y-%m-%d') }}{% endif %}">
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-success">💾 Salvar Datas</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tab: Avisos -->
+<div id="avisos" class="tab-content">
+    <div class="config-section">
+        <div class="config-section-header">
+            <h3>⚠️ Avisos Importantes</h3>
+        </div>
+
+        <!-- Formulário para novo aviso -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4 class="card-title">➕ Adicionar Novo Aviso</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="/admin/avisos/novo">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="programa_id" class="form-label">Programa</label>
+                            <select id="programa_id" name="programa_id" class="form-control" required>
+                                <option value="">Selecione um programa...</option>
+                                {% for prog in programas %}
+                                    <option value="{{ prog.id }}">{{ prog.nome }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="titulo" class="form-label">Título do Aviso</label>
+                            <input type="text" id="titulo" name="titulo" class="form-control" placeholder="Ex: Documentação Necessária" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="descricao" class="form-label">Descrição do Aviso</label>
+                        <textarea id="descricao" name="descricao" class="form-control" rows="4" placeholder="Digite o conteúdo do aviso..." required></textarea>
+                    </div>
+
+                    <div class="text-right">
+                        <button type="submit" class="btn btn-success">➕ Adicionar Aviso</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Lista de avisos -->
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">📋 Avisos Cadastrados</h4>
+            </div>
+            <div class="card-body">
+                {% if avisos %}
+                    <div class="aviso-list">
+                        {% for aviso in avisos %}
+                            <div class="aviso-item {% if not aviso.ativo %}inactive{% endif %}">
+                                <div class="aviso-header">
+                                    <div>
+                                        <h5 class="aviso-title">{{ aviso.titulo }}</h5>
+                                        <div class="aviso-programa">
+                                            📍 Programa: {{ aviso.programa.nome }}
+                                        </div>
+                                    </div>
+                                    <form method="POST" action="/admin/avisos/{{ aviso.id }}/toggle" class="aviso-actions">
+                                        <button type="submit" class="btn btn-sm {% if aviso.ativo %}btn-danger{% else %}btn-success{% endif %}">
+                                            {% if aviso.ativo %}Desativar{% else %}Ativar{% endif %}
+                                        </button>
+                                    </form>
+                                </div>
+                                
+                                <div class="aviso-descricao">
+                                    {{ aviso.descricao }}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <h4>Nenhum aviso cadastrado</h4>
+                        <p>Adicione um novo aviso usando o formulário acima</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="text-center mt-4">
+    <a href="/admin" class="btn btn-secondary">← Voltar para Dashboard</a>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                
+                // Remove active class from all tabs and contents
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab and corresponding content
+                this.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+    });
+</script>
+{% endblock %}
