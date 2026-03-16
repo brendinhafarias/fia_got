@@ -420,7 +420,7 @@
             <h3>📅 Configuração dos Programas</h3>
         </div>
         
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
             {% for programa in programas %}
                 <div class="programa-config">
                     <div class="programa-header">
@@ -441,6 +441,23 @@
                             <label for="programa_{{ programa.id }}_data_fechamento" class="form-label">Data de Fechamento</label>
                             <input type="date" id="programa_{{ programa.id }}_data_fechamento" name="programa_{{ programa.id }}_data_fechamento" class="form-control" value="{% if programa.data_fechamento %}{{ programa.data_fechamento.strftime('%Y-%m-%d') }}{% endif %}">
                         </div>
+                    </div>
+
+                    <div class="form-group mt-2">
+                        <label class="form-label">Imagem do Card</label>
+                        {% if programa.imagem_filename %}
+                            <div class="mb-2">
+                                <img src="{{ url_for('static', filename='uploads/' + programa.imagem_filename) }}"
+                                     alt="Imagem atual"
+                                     style="height: 100px; border-radius: 6px; object-fit: cover; border: 1px solid #dee2e6;">
+                                <small class="text-muted d-block mt-1">Imagem atual. Envie uma nova para substituir.</small>
+                            </div>
+                        {% endif %}
+                        <input type="file"
+                               name="programa_{{ programa.id }}_imagem"
+                               class="form-control"
+                               accept=".png,.jpg,.jpeg">
+                        <small class="text-muted">Formatos: PNG, JPG ou JPEG. Tamanho recomendado: 800×400px.</small>
                     </div>
 
                     <div class="form-group mt-2">

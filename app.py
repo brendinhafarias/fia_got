@@ -112,6 +112,7 @@ class Programa(db.Model):
     data_abertura = db.Column(db.Date, nullable=True)
     data_fechamento = db.Column(db.Date, nullable=True)
     ativo = db.Column(db.Boolean, default=True)
+    imagem_filename = db.Column(db.String(255), nullable=True)
     criado_em = db.Column(db.DateTime, default=datetime.utcnow)
     atualizado_em = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     avisos = db.relationship('Aviso', backref='programa', lazy=True)
@@ -1931,6 +1932,14 @@ def admin_config():
             descricao = request.form.get(prefix + 'descricao', '').strip()
             programa.descricao_curta = descricao_curta
             programa.descricao = descricao
+
+            imagem = request.files.get(prefix + 'imagem')
+            if imagem and allowed_file(imagem.filename, ['img']):
+                original = secure_filename(imagem.filename)
+                timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S%f')
+                imagem_filename = f"programa_{programa.slug}_{timestamp}_{original}"
+                imagem.save(os.path.join(app.config['UPLOAD_FOLDER'], imagem_filename))
+                programa.imagem_filename = imagem_filename
 
         db.session.commit()
         flash('Configurações atualizadas com sucesso.', 'success')

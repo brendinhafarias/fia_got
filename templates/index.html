@@ -204,13 +204,15 @@
 <div class="programs-grid">
     {% for programa in programas %}
         <div class="program-card">
-            {% if 'Imersão' in programa.nome or 'Imersao' in programa.nome %}
+            {% if programa.imagem_filename %}
+                <img src="{{ url_for('static', filename='uploads/' + programa.imagem_filename) }}"
+                     alt="{{ programa.nome }}"
+                     class="program-card-image">
+            {% elif 'Imersão' in programa.nome or 'Imersao' in programa.nome %}
                 <img src="{{ url_for('static', filename='images/imersao.png') }}"
                      alt="{{ programa.nome }}"
                      class="program-card-image">
-            {% endif %}
-
-            {% if 'Estágio' in programa.nome or 'Estagio' in programa.nome %}
+            {% elif 'Estágio' in programa.nome or 'Estagio' in programa.nome %}
                 <img src="{{ url_for('static', filename='images/estagio.png') }}"
                      alt="{{ programa.nome }}"
                      class="program-card-image">
