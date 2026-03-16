@@ -22,4 +22,4 @@ __pycache__/
 database.db
 *.db
 .DS_Store
-
+google_credentials.json
