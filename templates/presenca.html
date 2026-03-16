@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Confirmar Presença - {{ palestra.titulo }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Header -->
+            <div class="text-center mb-4">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="CFA Brasil" style="height: 80px; margin-bottom: 1rem;">
+                <h1 class="fw-bold" style="color: var(--primary-color);">Lista de Presença</h1>
+                <p class="text-muted">Programa Imersão para Mulheres no Motorsport 2026</p>
+            </div>
+
+            <!-- Card da Palestra -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header" style="background: var(--primary-color); color: white;">
+                    <h5 class="mb-0">
+                        <i class="bi bi-calendar-event me-2"></i>
+                        Palestra {{ palestra.numero }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h4 class="card-title mb-3">{{ palestra.titulo }}</h4>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <i class="bi bi-calendar3 me-2 text-primary"></i>
+                                <strong>Data:</strong> {{ palestra.data }}
+                            </p>
+                            <p class="mb-2">
+                                <i class="bi bi-clock me-2 text-primary"></i>
+                                <strong>Horário:</strong> {{ palestra.horario }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <i class="bi bi-hourglass-split me-2 text-primary"></i>
+                                <strong>Duração:</strong> {{ palestra.cargahoraria }}
+                            </p>
+                            <p class="mb-2">
+                                <i class="bi bi-people me-2 text-primary"></i>
+                                <strong>Palestrantes:</strong>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        {% for palestrante in palestra.palestrantes %}
+                            <small>{{ palestrante }}</small><br>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulário de Presença -->
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-4">
+                        <i class="bi bi-check-circle me-2"></i>
+                        Confirmar Presença
+                    </h5>
+                    
+                    <div id="alertMessage"></div>
+                    
+                    <form id="formPresenca">
+                        <div class="mb-3">
+                            <label for="email" class="form-label fw-semibold">
+                                Email cadastrado no programa
+                            </label>
+                            <input type="email" 
+                                   class="form-control form-control-lg" 
+                                   id="email" 
+                                   name="email" 
+                                   placeholder="seu@email.com"
+                                   required
+                                   autocomplete="email">
+                            <small class="text-muted">
+                                Use o mesmo email da sua inscrição no programa
+                            </small>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" id="btnConfirmar">
+                                <i class="bi bi-check-lg me-2"></i>
+                                Confirmar Presença
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Informações Adicionais -->
+            <div class="text-center mt-4">
+                <p class="text-muted">
+                    <i class="bi bi-shield-check me-1"></i>
+                    Seus dados estão protegidos e serão usados apenas para controle de presença.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('formPresenca').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const btn = document.getElementById('btnConfirmar');
+    const alertDiv = document.getElementById('alertMessage');
+    const email = document.getElementById('email').value;
+    
+    // Desabilitar botão
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Confirmando...';
+    
+    try {
+        const response = await fetch('{{ url_for("confirmar_presenca", palestranumero=palestranumero, token=token) }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `email=${encodeURIComponent(email)}`
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alertDiv.innerHTML = `
+                <div class="alert alert-success alert-dismissible fade show">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            document.getElementById('formPresenca').reset();
+            
+            // Confete de comemoração (opcional)
+            setTimeout(() => {
+                alertDiv.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="bi bi-award me-2"></i>
+                        Você receberá seu certificado por email após o término do programa!
+                    </div>
+                `;
+            }, 3000);
+        } else {
+            alertDiv.innerHTML = `
+                <div class="alert alert-danger alert-dismissible fade show">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+        }
+    } catch (error) {
+        alertDiv.innerHTML = `
+            <div class="alert alert-danger alert-dismissible fade show">
+                <i class="bi bi-x-circle-fill me-2"></i>
+                Erro ao confirmar presença. Tente novamente.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+    }
+    
+    // Reabilitar botão
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-check-lg me-2"></i>Confirmar Presença';
+});
+</script>
+{% endblock %}

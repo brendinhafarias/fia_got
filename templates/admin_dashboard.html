@@ -1,0 +1,1425 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Admin - CFA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        background: var(--primary-color);
+        color: rgb(0, 0, 0);
+        padding: 2rem;
+        border-radius: 0.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .dashboard-header h1 {
+        font-weight: 700;
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-box {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        border: 1px solid #dee2e6;
+        border-left: 4px solid;
+    }
+
+    .stat-box.pendente { border-left-color: #ffc107; }
+    .stat-box.pre-selecionada { border-left-color: #17a2b8; }
+    .stat-box.selecionada { border-left-color: #28a745; }
+    .stat-box.nao-selecionada { border-left-color: #dc3545; }
+    .stat-box.total { border-left-color: var(--primary-color); }
+
+    .stat-box .stat-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-box .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    .filter-card {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        border: 1px solid #dee2e6;
+        margin-bottom: 2rem;
+    }
+
+    .filter-card h5 {
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 1.5rem;
+    }
+
+    /* Cards de Inscrição */
+    .inscricao-card {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.2s;
+    }
+
+    .inscricao-card:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .card-header-custom {
+        padding: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        border-radius: 0.5rem 0.5rem 0 0;
+    }
+
+    .inscricao-card.expanded .card-header-custom {
+        background: white;
+    }
+
+    .foto-thumb {
+        width: 60px;
+        height: 60px;
+        border-radius: 0.5rem;
+        object-fit: cover;
+        border: 2px solid #dee2e6;
+        flex-shrink: 0;
+    }
+
+    .foto-placeholder {
+        width: 60px;
+        height: 60px;
+        border-radius: 0.5rem;
+        background: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #dee2e6;
+        flex-shrink: 0;
+    }
+
+    .info-basica {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .info-basica h6 {
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        font-size: 1.1rem;
+        color: var(--primary-color);
+    }
+
+    .info-basica .info-row {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+
+    .info-basica .info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        white-space: nowrap;
+    }
+
+    .status-badge.pendente {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-badge.pre_selecionada {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .status-badge.selecionada {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-badge.nao_selecionada {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .badge-inscricoes {
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        background: #e7f3ff;
+        color: #0066cc;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .badge-inscricoes:hover {
+        background: #0066cc;
+        color: white;
+    }
+
+    .badge-inscricoes.single {
+        background: #f8f9fa;
+        color: #6c757d;
+        cursor: default;
+    }
+
+    .expand-icon {
+        font-size: 1.5rem;
+        color: #6c757d;
+        transition: transform 0.2s;
+    }
+
+    .inscricao-card.expanded .expand-icon {
+        transform: rotate(180deg);
+    }
+
+    .status-toggle-group {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+    .status-toggle {
+        position: relative;
+    }
+
+    .status-toggle-input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .status-toggle-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.625rem 1.25rem;
+        border-radius: 0.5rem;
+        border: 2px solid #e0e0e0;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 600;
+        font-size: 0.875rem;
+        background: #f8f9fa;
+        color: #495057;
+    }
+
+    .status-toggle-label:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .status-toggle-input:checked + .status-toggle-label {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .status-toggle-input:checked + .status-toggle-label.pendente {
+        background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+        border-color: #ff9800;
+        color: #000;
+    }
+
+    .status-toggle-input:checked + .status-toggle-label.pre_selecionada {
+        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        border-color: #117a8b;
+        color: white;
+    }
+
+    .status-toggle-input:checked + .status-toggle-label.selecionada {
+        background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+        border-color: #1e7e34;
+        color: white;
+    }
+
+    .status-toggle-input:checked + .status-toggle-label.nao_selecionada {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        border-color: #bd2130;
+        color: white;
+    }
+
+
+
+    .card-body-custom {
+        padding: 1.5rem;
+        display: none;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .inscricao-card.expanded .card-body-custom {
+        display: block;
+    }
+
+    .info-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .info-section h6 {
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--primary-color);
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+
+    .info-field {
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border-radius: 0.375rem;
+    }
+
+    .info-field label {
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: #495057;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+    .status-badge.certificado_enviado {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    }
+
+    .info-field p {
+        margin: 0;
+        color: var(--secondary-color);
+        word-wrap: break-word;
+    }
+
+    .action-section {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        padding-top: 1rem;
+        border-top: 1px solid #dee2e6;
+        flex-wrap: wrap;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #6c757d;
+    }
+
+    .empty-state i {
+        font-size: 5rem;
+        color: #dee2e6;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Timeline de Histórico */
+    .timeline-card {
+        border-left: 3px solid #dee2e6;
+        padding-left: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .timeline-card.current {
+        border-left-color: var(--primary-color);
+        background: #f8f9fa;
+    }
+
+        /* Seleção em massa */
+    .bulk-actions-bar {
+        position: sticky;
+        top: 0;
+        background: #fff;
+        border: 2px solid var(--primary-color);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        display: none;
+        z-index: 100;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .bulk-actions-bar.show {
+        display: flex;
+    }
+
+    .checkbox-inscricao {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    .card-header-custom .checkbox-inscricao {
+        margin-right: 0.5rem;
+    }
+
+    .stat-box.backup {
+    border-left-color: #6c757d; /* Cinza para backup */
+    }
+
+    .status-badge.backup {
+        background: #6c757d;
+        color: white;
+    }
+
+    .status-toggle-input:checked + .status-toggle-label.backup {
+        background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
+        border-color: #545b62;
+        color: white;
+    }
+
+
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .card-header-custom {
+            flex-wrap: wrap;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .dashboard-header h1 {
+            font-size: 1.5rem;
+        }
+
+        .info-basica .info-row {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Dashboard Header -->
+<div class="dashboard-header">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h1><i class="bi bi-speedometer2 me-2"></i>Painel de Controle</h1>
+            <p class="mb-0">Gerencie inscrições e selecione candidatas</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+    <form method="POST" action="{{ url_for('admin_enviar_lembretes_hoje') }}" style="display: inline;"
+          onsubmit="return confirm('Enviar lembretes para todas as candidatas com palestras hoje?')">
+        <button type="submit" class="btn btn-warning">
+            <i class="bi bi-bell-fill me-1"></i>Enviar Lembretes Hoje
+        </button>
+    </form>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{{ url_for('admin_config') }}" class="btn btn-light">
+                <i class="bi bi-gear me-1"></i>Configurações
+            </a>
+            <a href="{{ url_for('admin_logout') }}" class="btn btn-light">
+                <i class="bi bi-box-arrow-right me-1"></i>Sair
+            </a>
+
+        </div>
+    </div>
+</div>
+
+<!-- Estatísticas -->
+<div class="stats-grid">
+    <div class="stat-box total">
+        <div class="stat-label">Total Inscrições</div>
+        <div class="stat-value">{{ stats_geral.total }}</div>
+    </div>
+
+    <div class="stat-box pendente">
+        <div class="stat-label">Pendentes</div>
+        <div class="stat-value">{{ stats_geral.pendentes }}</div>
+    </div>
+
+    <div class="stat-box pre-selecionada">
+        <div class="stat-label">Pré-Selecionadas</div>
+        <div class="stat-value">{{ stats_geral.pre_selecionadas }}</div>
+    </div>
+
+    <div class="stat-box backup">
+        <div class="stat-label">Backup</div>
+        <div class="stat-value">{{ stats_geral.backup }}</div>
+    </div>
+
+    <div class="stat-box selecionada">
+        <div class="stat-label">Selecionadas</div>
+        <div class="stat-value">{{ stats_geral.selecionadas }}</div>
+    </div>
+
+    <div class="stat-box nao-selecionada">
+        <div class="stat-label">Não Selecionadas</div>
+        <div class="stat-value">{{ stats_geral.nao_selecionadas }}</div>
+    </div>
+</div>
+
+
+
+
+<!-- Filtros Avançados -->
+<div class="filter-card">
+    <h5><i class="bi bi-funnel-fill me-2"></i>Filtros Avançados</h5>
+
+    <form method="GET" action="{{ url_for('admin_dashboard') }}" id="filterForm">
+        <div class="row g-3">
+            <!-- Linha 1 -->
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Programa</label>
+                <select name="programa_id" class="form-select">
+                    <option value="">Todos os Programas</option>
+                    {% for programa in programas %}
+                    <option value="{{ programa.id }}" {% if filtros.programa_id == programa.id|string %}selected{% endif %}>
+                        {{ programa.nome }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label fw-semibold">Ano</label>
+                <select name="ano" class="form-select">
+                    <option value="">Todos os Anos</option>
+                    {% for ano in anos_disponiveis %}
+                    <option value="{{ ano }}" {% if filtros.ano == ano|string %}selected{% endif %}>{{ ano }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            
+
+            <div class="col-md-6">
+                <label class="form-label fw-semibold mb-3">Status</label>
+                <div class="status-toggle-group">
+                    <div class="status-toggle">
+                        <input type="checkbox" name="status" value="pendente" id="statusPendente"
+                            class="status-toggle-input"
+                            {% if 'pendente' in filtros.getlist('status') %}checked{% endif %}>
+                        <label for="statusPendente" class="status-toggle-label pendente">
+                            Pendente
+                        </label>
+                    </div>
+
+                    <div class="status-toggle">
+                        <input type="checkbox" name="status" value="pre_selecionada" id="statusPreSelecionada"
+                            class="status-toggle-input"
+                            {% if 'pre_selecionada' in filtros.getlist('status') %}checked{% endif %}>
+                        <label for="statusPreSelecionada" class="status-toggle-label pre_selecionada">
+                            Pré-Selecionada
+                        </label>
+                    </div>
+
+                    <div class="status-toggle">
+                        <input type="checkbox" name="status" value="backup" id="statusBackup"
+                            class="status-toggle-input"
+                            {% if 'backup' in filtros.get('status', []) %}checked{% endif %}>
+                        <label for="statusBackup" class="status-toggle-label backup">
+                            Backup
+                        </label>
+                    </div>
+
+                    <div class="status-toggle">
+                        <input type="checkbox" name="status" value="selecionada" id="statusSelecionada"
+                            class="status-toggle-input"
+                            {% if 'selecionada' in filtros.getlist('status') %}checked{% endif %}>
+                        <label for="statusSelecionada" class="status-toggle-label selecionada">
+                            Selecionada
+                        </label>
+                    </div>
+
+                    <div class="status-toggle">
+                        <input type="checkbox" name="status" value="nao_selecionada" id="statusNaoSelecionada"
+                            class="status-toggle-input"
+                            {% if 'nao_selecionada' in filtros.getlist('status') %}checked{% endif %}>
+                        <label for="statusNaoSelecionada" class="status-toggle-label nao_selecionada">
+                            Não Selecionada
+                        </label>
+                    </div>
+
+                </div>
+            </div>
+               
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Presença</label>
+                <select name="filtro_presenca" class="form-select">
+                    <option value="">Todas</option>
+                    <option value="com_presenca" {% if filtros.filtro_presenca == 'com_presenca' %}selected{% endif %}>
+                        ✅ Apenas com Presença
+                    </option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label fw-semibold">Estado (UF)</label>
+                <select name="estado" class="form-select">
+                    <option value="">Todos</option>
+                    {% for uf in estados_disponiveis %}
+                    <option value="{{ uf }}" {% if filtros.estado == uf %}selected{% endif %}>{{ uf }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Inscrições Múltiplas</label>
+                <select name="inscricoes_multiplas" class="form-select">
+                    <option value="">Todas</option>
+                    <option value="sim" {% if filtros.inscricoes_multiplas == 'sim' %}selected{% endif %}>Apenas Múltiplas</option>
+                </select>
+            </div>
+
+            <!-- NOVO: Filtro por Palestra (apenas para Imersão) -->
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Palestra (Imersão)</label>
+                <select name="palestra" class="form-select">
+                    <option value="">Todas as Palestras</option>
+                    <option value="palestra1" {% if filtros.palestra == 'palestra1' %}selected{% endif %}>Palestra 1 - Apresentação CFA + Spoilers dos projetos que acontecerão em 2026</option>
+                    <option value="palestra2" {% if filtros.palestra == 'palestra2' %}selected{% endif %}>Palestra 2 - Marketing Digital e Estratégia no Automobilismo</option>
+                    <option value="palestra3" {% if filtros.palestra == 'palestra3' %}selected{% endif %}>Palestra 3 - Direção de Prova no Motorsport</option>
+                    <option value="palestra4" {% if filtros.palestra == 'palestra4' %}selected{% endif %}>Palestra 4 - Aquisição de Dados no Motorsport</option>
+                    <option value="palestra5" {% if filtros.palestra == 'palestra5' %}selected{% endif %}>Palestra 5 - Construção de Currículo e Carreira no Automobilismo</option>
+                </select>
+            </div>
+
+
+
+            <!-- Linha 2 -->
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Nome</label>
+                <input type="text" name="nome" class="form-control" placeholder="Buscar por nome" value="{{ filtros.nome or '' }}">
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Email</label>
+                <input type="text" name="email" class="form-control" placeholder="Buscar por email" value="{{ filtros.email or '' }}">
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Idade Mínima</label>
+                <input type="number" name="idade_min" class="form-control" placeholder="Ex: 18" min="1" max="100" value="{{ filtros.idade_min or '' }}">
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Idade Máxima</label>
+                <input type="number" name="idade_max" class="form-control" placeholder="Ex: 35" min="1" max="100" value="{{ filtros.idade_max or '' }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold">Limitar a</label>
+                <input type="number" name="limite" class="form-control" placeholder="Ex: 50" min="1" value="{{ filtros.limite or '' }}">
+            </div>
+        </div>
+
+        <!-- 🆕 FILTROS ESPECÍFICOS PARA ESTÁGIO MOTORSPORT -->
+        <div id="filtrosMotorsport">
+            <hr class="my-4">
+            <h6 class="fw-bold mb-3" style="color: var(--primary-color);">
+                <i class="bi bi-funnel me-2"></i>Filtros Específicos - Estágio Motorsport
+            </h6>
+
+            <div class="row g-3">
+
+                <!-- Filtro por Escolaridade -->
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Escolaridade</label>
+                    <select name="escolaridade" class="form-select">
+                        <option value="">Todas</option>
+                        {% for escolaridade in escolaridadesdisponiveis %}
+                        <option value="{{ escolaridade }}" {% if filtros.escolaridade == escolaridade %}selected{% endif %}>
+                            {{ escolaridade }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Filtro por Cor -->
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Cor/Raça</label>
+                    <select name="cor" class="form-select">
+                        <option value="">Todas</option>
+                        {% for cor in coresdisponiveis %}
+                        <option value="{{ cor }}" {% if filtros.cor == cor %}selected{% endif %}>
+                            {{ cor }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Filtro por área de atuação-->
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Área de Atuação</label>
+                    <select name="area_atuacao" class="form-select">
+                        <option value="">Todas</option>
+                        <option value="Engenharia" {% if filtros.area_atuacao == 'Engenharia' %}selected{% endif %}>Engenharia</option>
+                        <option value="Mecânica" {% if filtros.area_atuacao == 'Mecânica' %}selected{% endif %}>Mecânica</option>
+                        <option value="Comunicação" {% if filtros.area_atuacao == 'Comunicação' %}selected{% endif %}>Comunicação</option>
+                        <option value="Marketing" {% if filtros.area_atuacao == 'Marketing' %}selected{% endif %}>Marketing</option>
+                        <option value="Administração" {% if filtros.area_atuacao == 'Administração' %}selected{% endif %}>Administração</option>
+                        <option value="Logística" {% if filtros.area_atuacao == 'Logística' %}selected{% endif %}>Logística</option>
+                        <option value="Tecnologia da Informação" {% if filtros.area_atuacao == 'Tecnologia da Informação' %}selected{% endif %}>Tecnologia da Informação</option>
+                        <option value="Jurídico" {% if filtros.area_atuacao == 'Jurídico' %}selected{% endif %}>Jurídico</option>
+                        <option value="Outro" {% if filtros.area_atuacao == 'Outro' %}selected{% endif %}>Outro</option>
+                    </select>
+                </div>
+
+                <!-- Filtro por Ativação -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Ativações Selecionadas</label>
+                    <div class="d-flex gap-3 flex-wrap">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="ativacoes" value="Porsche Cup" id="ativacaoporsche"
+                                {% if 'Porsche Cup' in filtros.getlist('ativacoes') %}checked{% endif %}>
+                            <label class="form-check-label" for="ativacaoporsche">Porsche Cup</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="ativacoes" value="Copa Truck" id="ativacaotruck"
+                                {% if 'Copa Truck' in filtros.getlist('ativacoes') %}checked{% endif %}>
+                            <label class="form-check-label" for="ativacaotruck">Copa Truck</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="ativacoes" value="Endurance" id="ativacaoendurance"
+                                {% if 'Endurance' in filtros.getlist('ativacoes') %}checked{% endif %}>
+                            <label class="form-check-label" for="ativacaoendurance">Endurance</label>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <div class="d-flex gap-2 mt-3 flex-wrap">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-search me-2"></i>Aplicar Filtros
+            </button>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle me-2"></i>Limpar
+            </a>
+            <button type="button" class="btn btn-success ms-auto" onclick="exportarPDFComFiltros()">
+                <i class="bi bi-file-pdf me-2"></i>Exportar PDF
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Lista de Inscrições -->
+<div class="mb-3 d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-3">
+        <h5 class="mb-0">
+            <i class="bi bi-people-fill me-2"></i>
+            Inscrições ({{ inscricoes|length }})
+        </h5>
+        {% if inscricoes %}
+        <button type="button" class="btn btn-outline-primary btn-sm" onclick="selecionarTodas()">
+            <i class="bi bi-check-square me-1"></i>Selecionar Todas
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+
+<div class="bulk-actions-bar align-items-center gap-3 flex-wrap" id="bulkActionsBar">
+    <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-check-square-fill text-primary fs-5"></i>
+        <span class="fw-bold text-nowrap"><span id="selectedCount">0</span> selecionada(s)</span>
+    </div>
+
+    <form method="POST" action="{{ url_for('admin_update_status_em_massa') }}" id="bulkForm" class="d-flex align-items-center gap-2 flex-grow-1 flex-wrap">
+        <input type="hidden" name="query_string" value="{{ request.query_string.decode() }}">
+        <input type="hidden" name="palestra_filtrada" id="palestraFiltradaInput" value="{{ filtros.palestra or '' }}">
+
+        <label class="mb-0 fw-semibold text-nowrap">Alterar para:</label>
+
+        <select name="novo_status" class="form-select" style="width: auto; min-width: 180px;" required>
+            <option value="">Selecione o status</option>
+            <option value="pendente">Pendente</option>
+            <option value="pre_selecionada">Pré-Selecionada</option>
+            <option value="backup">Backup</option>
+            <option value="selecionada">Selecionada</option>
+            <option value="nao_selecionada">Não Selecionada</option>
+        </select>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary text-nowrap">
+                <i class="bi bi-check-lg me-1"></i>Aplicar
+            </button>
+
+            <button type="button" class="btn btn-outline-secondary text-nowrap" onclick="desmarcarTodas()">
+                <i class="bi bi-x-circle me-1"></i>Cancelar
+            </button>
+        </div>
+    </form>
+    <form method="POST" action="{{ url_for('admin_enviar_certificados_em_massa') }}" id="bulkCertificadosForm" class="d-flex align-items-center gap-2 ms-auto">
+        <input type="hidden" name="query_string" value="{{ request.query_string.decode() }}">
+        <button type="submit" class="btn btn-success text-nowrap" title="Envia certificados apenas das palestras com presença confirmada">
+            <i class="bi bi-award-fill me-1"></i>Enviar Certificados
+        </button>
+    </form>
+</div>
+
+{% if inscricoes %}
+<div class="inscricoes-lista">
+    {% for inscricao in inscricoes %}
+    <div class="inscricao-card" id="inscricao-{{ inscricao.id }}">
+        <!-- Header do Card (sempre visível) -->
+        <div class="card-header-custom">
+            <input type="checkbox" class="checkbox-inscricao" data-inscricao-id="{{ inscricao.id }}" onclick="event.stopPropagation()">
+
+            <div style="flex-grow: 1; cursor: pointer;" onclick="toggleCard('{{ inscricao.id }}')">
+                <div class="d-flex align-items-center gap-1rem">
+                    {% if inscricao.foto_filename %}
+                    <img src="{{ url_for('static', filename='uploads/' + inscricao.foto_filename) }}"
+                         class="foto-thumb"
+                         alt="Foto {{ inscricao.nome }}">
+                    {% else %}
+                    <div class="foto-placeholder">
+                        <i class="bi bi-person-fill fs-4 text-muted"></i>
+                    </div>
+                    {% endif %}
+
+                    <div class="info-basica">
+                        <h6>{{ inscricao.nome }}</h6>
+                        <div class="info-row">
+                            <span class="info-item">
+                                <i class="bi bi-envelope"></i>
+                                {{ inscricao.email }}
+                            </span>
+                            <span class="info-item">
+                                <i class="bi bi-telephone"></i>
+                                {{ inscricao.telefone }}
+                            </span>
+                            <span class="info-item">
+                                <i class="bi bi-geo-alt"></i>
+                                {{ inscricao.estado }}
+                            </span>
+                            <span class="info-item">
+                                <i class="bi bi-award"></i>
+                                {{ inscricao.programa.nome }}
+                            </span>
+                            <span class="info-item">
+                                <i class="bi bi-calendar"></i>
+                                {{ inscricao.ano_inscricao }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex flex-column gap-2 align-items-end">
+                <span class="status-badge {{ inscricao.status }}">
+                    {% if inscricao.status == 'pendente' %}Pendente
+                    {% elif inscricao.status == 'pre_selecionada' %}Pré-Selecionada
+                    {% elif inscricao.status == 'backup' %}Backup
+                    {% elif inscricao.status == 'selecionada' %}Selecionada
+                    {% else %}Não Selecionada{% endif %}
+                </span>
+
+                {% if inscricao.curriculo_visto %}
+                    <span class="badge bg-info" style="font-size: 0.75rem;"
+                            title="Currículo já foi visto">
+                        <i class="bi bi-eye-fill me-1"></i>Currículo visto
+                    </span>
+                {% endif %}
+                <!-- Badge de palestras selecionadas -->
+                {% if inscricao.programa.slug == 'imersao' and inscricao.status == 'selecionada' and inscricao.palestras_selecionadas %}
+                    <span class="badge bg-success" style="font-size: 0.75rem;">
+                        <i class="bi bi-star-fill me-1"></i>
+                        {{ inscricao.palestras_selecionadas|length }} palestra(s)
+                    </span>
+                {% endif %}
+                
+                
+                {% if inscricao.total_inscricoes > 1 %}
+                <a href="#"
+                   class="badge-inscricoes"
+                   data-bs-toggle="modal"
+                   data-bs-target="#historico-{{ inscricao.id }}"
+                   onclick="event.stopPropagation()">
+                    <i class="bi bi-clock-history me-1"></i>{{ inscricao.total_inscricoes }} inscrições
+                </a>
+                {% else %}
+                <span class="badge-inscricoes single">
+                    1 inscrição
+                </span>
+                {% endif %}
+            </div>
+
+            <i class="bi bi-chevron-down expand-icon"></i>
+        </div>
+
+        <!-- Body do Card (expansível) -->
+        <div class="card-body-custom">
+            <!-- Dados Básicos -->
+            <div class="info-section">
+                <h6><i class="bi bi-person-badge me-2"></i>Informações Básicas</h6>
+                <div class="info-grid">
+                    <div class="info-field">
+                        <label>Nome Completo</label>
+                        <p>{{ inscricao.nome }}</p>
+                    </div>
+                    <div class="info-field">
+                        <label>E-mail</label>
+                        <p><a href="mailto:{{ inscricao.email }}">{{ inscricao.email }}</a></p>
+                    </div>
+                    <div class="info-field">
+                        <label>Telefone</label>
+                        <p>{{ inscricao.telefone }}</p>
+                    </div>
+                    <div class="info-field">
+                        <label>Estado</label>
+                        <p>{{ inscricao.estado }}</p>
+                    </div>
+                    <div class="info-field">
+                        <label>Data de Inscrição</label>
+                        <p>{{ inscricao.criado_em.strftime('%d/%m/%Y às %H:%M') }}</p>
+                    </div>
+                    <div class="info-field">
+                        <label>Programa</label>
+                        <p>{{ inscricao.programa.nome }}</p>
+                    </div>
+                    <div class="info-field">
+                        <label>Ano de Inscrição</label>
+                        <p>{{ inscricao.ano_inscricao }}</p>
+                    </div>
+                    <div class="info-field">
+                        <label>ID da Inscrição</label>
+                        <p>#{{ inscricao.id }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Campos Específicos do Programa -->
+            {% if inscricao.campos_extras %}
+            <div class="info-section">
+                <h6><i class="bi bi-clipboard-data me-2"></i>Informações Específicas</h6>
+                <div class="info-grid">
+                    {% for campo, valor in inscricao.campos_extras.items() %}
+                        {% if valor and valor != '' and valor != [] %}
+                        <div class="info-field">
+                            <label>{{ campo|replace('_', ' ')|title }}</label>
+                            <p>
+                                {% if valor is iterable and valor is not string %}
+                                    {{ valor|join(', ') }}
+                                {% elif valor == True %}
+                                    Sim
+                                {% elif valor == False %}
+                                    Não
+                                {% else %}
+                                    {{ valor }}
+                                {% endif %}
+                            </p>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+                                    <!-- PALESTRAS SELECIONADAS (IMERSÃO) -->
+                        {% if inscricao.programa.slug == 'imersao' and inscricao.campos_extras and inscricao.campos_extras.palestras_selecionadas %}
+                        <div class="info-section">
+                            <h6><i class="bi bi-calendar-check me-2"></i>Palestras Selecionadas</h6>
+                            <div class="list-group">
+                                {% for palestra_id in inscricao.campos_extras.palestras_selecionadas %}
+                                    {% if palestra_id in palestras_imersao %}
+                                    {% set palestra = palestras_imersao[palestra_id] %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">
+                                                <span class="badge bg-primary">{{ palestra.numero }}</span>
+                                                {{ palestra.titulo }}
+                                            </h6>
+                                        </div>
+                                        <p class="mb-1 small text-muted">
+                                            <i class="bi bi-calendar-event me-1"></i>{{ palestra.data }} às {{ palestra.horario }}
+                                            <span class="ms-3"><i class="bi bi-hourglass-split me-1"></i>{{ palestra.carga_horaria }}</span>
+                                        </p>
+                                        <small class="text-muted">{{ palestra.palestrantes[0] }}</small>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+
+            <!-- Arquivos -->
+            {% if inscricao.foto_filename or inscricao.curriculo_filename %}
+            <div class="info-section">
+                <h6><i class="bi bi-file-earmark me-2"></i>Arquivos Anexados</h6>
+                <div class="d-flex gap-3 flex-wrap">
+                    {% if inscricao.foto_filename %}
+                    <a href="{{ url_for('static', filename='uploads/' + inscricao.foto_filename) }}"
+                       target="_blank"
+                       class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-image me-2"></i>Ver Foto
+                    </a>
+                    {% endif %}
+                    {% if inscricao.curriculo_filename %}
+                    <a href="{{ url_for('static', filename='uploads/' + inscricao.curriculo_filename) }}"
+                       target="_blank"
+                       class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-file-pdf me-2"></i>Baixar Currículo
+                    </a>
+                    {% endif %}
+                    {% if inscricao.termo_responsabilidade_filename %}
+                    <a href="{{ url_for('static', filename='uploads/' + inscricao.termo_responsabilidade_filename) }}"
+                       target="_blank"
+                       class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-file-earmark-text me-2"></i>Baixar Termo de Responsabilidade
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+
+
+            <!-- Palestras para as quais foi SELECIONADA (apenas Imersão + Selecionada) -->
+    {% if inscricao.programa.slug == 'imersao' and inscricao.status == 'selecionada' %}
+        <div class="info-section">
+            <h6><i class="bi bi-star-fill me-2"></i>Selecionada para as Palestras</h6>
+
+            {% if inscricao.palestras_selecionadas and inscricao.palestras_selecionadas|length > 0 %}
+                <div class="alert alert-success mb-3" style="padding: 0.75rem;">
+                    {% for palestra_id in inscricao.palestras_selecionadas %}
+                        {% if palestra_id in palestras_imersao %}
+                            {% set palestra = palestras_imersao[palestra_id] %}
+                            <div class="d-flex align-items-start mb-2">
+                                <i class="bi bi-check-circle-fill text-success me-2 mt-1"></i>
+                                <div>
+                                    <strong>Palestra {{ palestra['numero'] }}:</strong> {{ palestra['titulo'] }}
+                                    <br><small class="text-muted">{{ palestra['data'] }} - {{ palestra['horario'] }}</small>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">Nenhuma palestra específica definida</p>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <!-- Confirmação de Presença -->
+    {% if inscricao.programa.slug == 'imersao' and inscricao.status == 'selecionada' %}
+        {% if inscricao.palestras_selecionadas and inscricao.palestras_selecionadas|length > 0 %}
+        <div class="info-section">
+            <h6><i class="bi bi-check2-square me-2"></i>Confirmação de Presença</h6>
+
+            <p class="text-muted small mb-3">
+                <i class="bi bi-info-circle me-1"></i>
+                A candidata confirma presença através do link enviado no dia da palestra.
+            </p>
+
+            <div class="list-group">
+                {% for palestra_id in inscricao.palestras_selecionadas %}
+                    {% if palestra_id in palestras_imersao %}
+                        {% set palestra = palestras_imersao[palestra_id] %}
+                        {% set presente = inscricao.presenca_palestras and inscricao.presenca_palestras.get(palestra_id, False) %}
+
+                        <div class="list-group-item d-flex align-items-center justify-content-between">
+                            <div class="flex-grow-1">
+                                <strong>Palestra {{ palestra['numero'] }}:</strong> {{ palestra['titulo'] }}
+                                <br><small class="text-muted">{{ palestra['data'] }} - {{ palestra['horario'] }}</small>
+                            </div>
+                            <div>
+                                {% if presente %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle-fill me-1"></i>Presente
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">
+                                        <i class="bi bi-clock me-1"></i>Aguardando
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    {% endif %}
+
+
+    <!-- Observações do Admin e Currículo Visto -->
+<div class="info-section">
+    <h6><i class="bi bi-chat-square-text me-2"></i>Gestão da Inscrição</h6>
+
+    {% if inscricao.observacao_admin %}
+    <div class="alert alert-secondary mb-3" style="padding: 0.75rem;">
+        <strong><i class="bi bi-sticky me-1"></i>Observações:</strong>
+        <p class="mb-0 mt-2" style="white-space: pre-wrap;">{{ inscricao.observacao_admin }}</p>
+    </div>
+    {% endif %}
+
+    {% if inscricao.curriculo_visto %}
+    <div class="alert alert-info mb-0" style="padding: 0.5rem;">
+        <i class="bi bi-check-circle-fill me-1"></i>
+        <strong>Currículo revisado</strong>
+    </div>
+    {% endif %}
+</div>
+
+                                    <!-- Ações -->
+                        <div class="action-section">
+                            <!-- Formulário de atualização de status -->
+                            <form method="POST" action="{{ url_for('admin_update_status', inscricao_id=inscricao.id) }}" class="d-flex gap-2 align-items-center flex-wrap">
+                                <label class="mb-0 fw-semibold">Alterar Status:</label>
+                                <select name="status" class="form-select" style="width: auto; min-width: 200px;">
+                                    <option value="pendente" {% if inscricao.status == 'pendente' %}selected{% endif %}>Pendente</option>
+                                    <option value="pre_selecionada" {% if inscricao.status == 'pre_selecionada' %}selected{% endif %}>Pré-Selecionada</option>
+                                    <option value="backup" {% if inscricao.status == 'backup' %}selected{% endif %}>Backup</option>
+                                    <option value="selecionada" {% if inscricao.status == 'selecionada' %}selected{% endif %}>Selecionada</option>
+                                    <option value="nao_selecionada" {% if inscricao.status == 'nao_selecionada' %}selected{% endif %}>Não Selecionada</option>
+                                </select>
+
+                                <div class="col-md-4 d-flex align-items-end">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="curriculo_visto"
+                                        id="curriculo_{{ inscricao.id }}"
+                                        {% if inscricao.curriculo_visto %}checked{% endif %}>
+                                    <label class="form-check-label fw-semibold" for="curriculo_{{ inscricao.id }}">
+                                        <i class="bi bi-eye me-1"></i>Currículo visto
+                                    </label>
+                                </div>
+                            </div>
+
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-chat-square-text me-1"></i>Observações internas
+                                </label>
+                                <textarea name="observacao_admin" class="form-control" rows="3"
+                                        placeholder="Adicione observações sobre esta candidata (visível apenas para admins)..."
+                                >{{ inscricao.observacao_admin or '' }}</textarea>
+                                <small class="text-muted">
+                                    Use este campo para anotar informações importantes sobre a candidata
+                                </small>
+                            </div>
+
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-check-lg me-1"></i>Salvar
+                                </button>
+                            </form>
+
+                              <!-- BOTÃO DE CERTIFICADOS (APENAS IMERSÃO) -->
+                            {% if inscricao.programa.slug == 'imersao' and inscricao.status == 'selecionada' %}
+                                {% set tem_presenca = False %}
+                                {% if inscricao.presenca_palestras %}
+                                    {% for palestra_id, presente in inscricao.presenca_palestras.items() %}
+                                        {% if presente %}
+                                            {% set tem_presenca = True %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+
+                                <form method="POST" action="{{ url_for('admin_enviar_certificados', inscricao_id=inscricao.id) }}" class="d-inline" style="margin: 0;">
+                                    <button type="submit" class="btn btn-success btn-sm" title="Envia certificados apenas das palestras marcadas como 'presente'">
+                                        <i class="bi bi-award-fill me-1"></i>Enviar Certificados
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>  <!-- Fecha .action-section -->
+        </div>  <!-- Fecha .card-body-custom -->
+    </div>  <!-- Fecha .inscricao-card -->
+
+    <!-- Modal: Histórico Completo -->
+    {% if inscricao.total_inscricoes > 1 %}
+    <div class="modal fade" id="historico-{{ inscricao.id }}" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background: var(--primary-color); color: white;">
+                    <h5 class="modal-title">
+                        <i class="bi bi-clock-history me-2"></i>Histórico de Inscrições
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <h6 class="fw-bold mb-3">{{ inscricao.nome }} ({{ inscricao.email }})</h6>
+
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Total de inscrições:</strong> {{ inscricao.total_inscricoes }}
+                    </div>
+
+                    <div class="timeline">
+                        {% for hist in inscricao.historico %}
+                        <div class="timeline-card {% if hist.id == inscricao.id %}current{% endif %} p-3 mb-3 rounded">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="fw-bold mb-2" style="color: var(--primary-color);">
+                                        {{ hist.programa.nome }}
+                                    </h6>
+                                    <p class="mb-1"><strong>Ano:</strong> {{ hist.ano_inscricao }}</p>
+                                    <p class="mb-1">
+                                        <strong>Status:</strong>
+                                        {% if hist.status == 'pendente' %}
+                                            <span class="badge bg-warning text-dark">Pendente</span>
+                                        {% elif hist.status == 'pre_selecionada' %}
+                                            <span class="badge bg-info">Pré-Selecionada</span>
+                                        {% elif hist.status == 'selecionada' %}
+                                            <span class="badge bg-success">Selecionada</span>
+                                        {% elif hist.status == 'nao_selecionada' %}
+                                            <span class="badge bg-danger">Não Selecionada</span>
+                                        {% endif %}
+                                    </p>
+                                    <p class="text-muted small mb-0">
+                                        <i class="bi bi-calendar me-1"></i>{{ hist.criado_em.strftime('%d/%m/%Y às %H:%M') }}
+                                    </p>
+                                </div>
+                                {% if hist.id == inscricao.id %}
+                                <span class="badge" style="background: var(--primary-color);">Atual</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% endfor %}
+{% else %}
+    <div class="empty-state">
+        <i class="bi bi-inbox"></i>
+        <h4>Nenhuma inscrição encontrada</h4>
+        <p>
+            {% if filtros.programa_id or filtros.status or filtros.nome or filtros.estado or filtros.ano or filtros.email or filtros.inscricoes_multiplas %}
+                Nenhuma inscrição corresponde aos filtros aplicados.
+            {% else %}
+                Ainda não há inscrições registradas no sistema.
+            {% endif %}
+        </p>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary">
+            <i class="bi bi-arrow-clockwise me-2"></i>Ver Todas as Inscrições
+        </a>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+
+function toggleCard(inscricaoId) {
+    const card = document.getElementById('inscricao-' + inscricaoId);
+    const body = card.querySelector('.card-body-custom');
+    const icon = card.querySelector('.expand-icon');
+
+    const isExpanded = body.style.display === 'block';
+
+    if (isExpanded) {
+        body.style.display = 'none';
+        icon.classList.remove('bi-chevron-up');
+        icon.classList.add('bi-chevron-down');
+    } else {
+        body.style.display = 'block';
+        icon.classList.remove('bi-chevron-down');
+        icon.classList.add('bi-chevron-up');
+    }
+}
+
+
+
+// Seleção em massa
+const checkboxes = document.querySelectorAll('.checkbox-inscricao');
+const bulkBar = document.getElementById('bulkActionsBar');
+const selectedCountSpan = document.getElementById('selectedCount');
+const bulkForm = document.getElementById('bulkForm');
+
+checkboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', updateBulkActions);
+});
+
+function updateBulkActions() {
+    const checked = document.querySelectorAll('.checkbox-inscricao:checked');
+    const count = checked.length;
+
+    selectedCountSpan.textContent = count;
+
+    if (count > 0) {
+        bulkBar.classList.add('show');
+
+        // Atualizar IDs no formulário de status
+        const oldInputsStatus = bulkForm.querySelectorAll('input[name="inscricoes_ids[]"]');
+        oldInputsStatus.forEach(input => input.remove());
+
+        checked.forEach(cb => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'inscricoes_ids[]';
+            input.value = cb.dataset.inscricaoId;
+            bulkForm.appendChild(input);
+        });
+
+        // Atualizar IDs no formulário de certificados
+        const bulkCertificadosForm = document.getElementById('bulkCertificadosForm');
+        const oldInputsCert = bulkCertificadosForm.querySelectorAll('input[name="inscricoes_ids[]"]');
+        oldInputsCert.forEach(input => input.remove());
+
+        checked.forEach(cb => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'inscricoes_ids[]';
+            input.value = cb.dataset.inscricaoId;
+            bulkCertificadosForm.appendChild(input);
+        });
+    } else {
+        bulkBar.classList.remove('show');
+    }
+}
+
+
+function selecionarTodas() {
+    checkboxes.forEach(cb => cb.checked = true);
+    updateBulkActions();
+}
+
+function desmarcarTodas() {
+    checkboxes.forEach(cb => cb.checked = false);
+    updateBulkActions();
+}
+
+
+// Confirmação antes de enviar status
+// Confirmação antes de enviar status
+bulkForm.addEventListener('submit', function(e) {
+    const checked = document.querySelectorAll('.checkbox-inscricao:checked');
+    const count = checked.length;
+
+    if (count === 0) {
+        alert('Nenhuma inscrição selecionada!');
+        e.preventDefault();
+        return;
+    }
+
+    // GARANTIR que os IDs estejam no formulário antes de enviar
+    const oldInputs = bulkForm.querySelectorAll('input[name="inscricoes_ids"]');
+    oldInputs.forEach(input => input.remove());
+
+    checked.forEach(cb => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'inscricoes_ids';
+        input.value = cb.dataset.inscricaoId;
+        bulkForm.appendChild(input);
+    });
+
+    const status = bulkForm.querySelector('select[name="novo_status"]').selectedOptions[0].text;
+    if (!confirm(`Confirma a alteração de ${count} inscrições para "${status}"?`)) {
+        e.preventDefault();
+    }
+});
+
+
+// Confirmação antes de enviar certificados
+// Confirmação antes de enviar certificados
+const bulkCertificadosForm = document.getElementById('bulkCertificadosForm');
+bulkCertificadosForm.addEventListener('submit', function(e) {
+    const checked = document.querySelectorAll('.checkbox-inscricao:checked');
+    const count = checked.length;
+
+    if (count === 0) {
+        alert('Nenhuma inscrição selecionada!');
+        e.preventDefault();
+        return;
+    }
+
+    // GARANTIR que os IDs estejam no formulário antes de enviar
+    const oldInputs = bulkCertificadosForm.querySelectorAll('input[name="inscricoes_ids"]');
+    oldInputs.forEach(input => input.remove());
+
+    checked.forEach(cb => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'inscricoes_ids';
+        input.value = cb.dataset.inscricaoId;
+        bulkCertificadosForm.appendChild(input);
+    });
+
+    if (!confirm(`Confirma o envio de certificados para ${count} inscrições selecionadas?...`)) {
+        e.preventDefault();
+    }
+});
+
+
+
+// 🆕 MOSTRAR/OCULTAR FILTROS DE MOTORSPORT AUTOMATICAMENTE
+const programaSelect = document.querySelector('select[name="programa_id"]');
+const filtrosMotorsport = document.getElementById('filtrosMotorsport');
+const programaMotorsportIds = {{ programa_motorsport_ids | tojson if programa_motorsport_ids else '[]' }};
+
+function toggleFiltrosMotorsport() {
+    const programaId = parseInt(programaSelect.value);
+    if (programaId && programaMotorsportIds.includes(programaId)) {
+        filtrosMotorsport.style.display = 'block';
+    } else {
+        filtrosMotorsport.style.display = 'none';
+    }
+}
+
+// Função para exportar PDF com todos os filtros aplicados
+function exportarPDFComFiltros() {
+    const form = document.getElementById('filterForm');
+    const formData = new FormData(form);
+    
+    // Construir URL com todos os parâmetros
+    const params = new URLSearchParams();
+    
+    for (const [key, value] of formData.entries()) {
+        if (value && value !== '' && value !== 'Todos' && value !== 'Todas') {
+            params.append(key, value);
+        }
+    }
+    
+    // Abrir em nova aba
+    const url = '{{ url_for("admin_exportar_pdf_filtrado") }}?' + params.toString();
+    window.open(url, '_blank');
+}
+
+
+// Verificar na carga da página
+toggleFiltrosMotorsport();
+
+// Verificar quando mudar o select
+programaSelect.addEventListener('change', toggleFiltrosMotorsport);
+
+
+</script>
+{% endblock %}

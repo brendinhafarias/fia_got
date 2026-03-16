@@ -1,0 +1,399 @@
+{% extends "base.html" %}
+
+{% block title %}Estatísticas - FIA Girls on Track{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .stat-card h3 {
+        color: var(--primary-color);
+        font-weight: 700;
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--primary-color);
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .progress-bar-custom {
+        background-color: var(--primary-color);
+    }
+    
+    .table-stats {
+        font-size: 0.9rem;
+    }
+    
+    .table-stats th {
+        background-color: var(--primary-color);
+        color: white;
+        font-weight: 600;
+    }
+    
+    .btn-export {
+        background-color: #28a745;
+        color: white;
+        font-weight: 600;
+    }
+    
+    .btn-export:hover {
+        background-color: #218838;
+        color: white;
+    }
+    
+    .highlight-box {
+        background: #e7f3ff;
+        border-left: 4px solid #0066cc;
+        padding: 1rem;
+        margin: 1rem 0;
+        border-radius: 0.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="mb-1"><i class="bi bi-graph-up"></i> Dashboard Estatístico</h1>
+            <p class="text-muted">Análise completa das inscrições do FIA Girls on Track Brasil</p>
+        </div>
+        <div class="col-auto">
+            <a href="{{ url_for('admin_exportar_estatisticas_pdf') }}" class="btn btn-export">
+                <i class="bi bi-file-earmark-pdf-fill me-2"></i>Exportar PDF Completo
+            </a>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary ms-2">
+                <i class="bi bi-arrow-left me-2"></i>Voltar
+            </a>
+        </div>
+    </div>
+    
+    <!-- Resumo Executivo -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="stat-card text-center">
+                <div class="stat-number">{{ stats.total_geral }}</div>
+                <div class="stat-label">Total de Inscrições</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card text-center">
+                <div class="stat-number">{{ stats.candidatas_unicas }}</div>
+                <div class="stat-label">Candidatas Únicas</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card text-center">
+                <div class="stat-number">{{ stats.candidatas_recorrentes }}</div>
+                <div class="stat-label">Candidatas Recorrentes</div>
+                <small class="text-muted">{{ "%.1f"|format((stats.candidatas_recorrentes / stats.candidatas_unicas * 100) if stats.candidatas_unicas > 0 else 0) }}% reinscrição</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card text-center">
+                <div class="stat-number">{{ stats.taxa_selecao }}%</div>
+                <div class="stat-label">Taxa de Seleção</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Distribuição por Status -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="stat-card">
+                <h3>Distribuição por Status</h3>
+                <table class="table table-stats table-hover">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th class="text-center">Quantidade</th>
+                            <th class="text-center">Percentual</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for status, qtd in stats.por_status.items() %}
+                        <tr>
+                            <td>{{ status }}</td>
+                            <td class="text-center">{{ qtd }}</td>
+                            <td class="text-center">
+                                <strong>{{ "%.1f"|format((qtd / stats.total_geral * 100)) }}%</strong>
+                                <div class="progress mt-1" style="height: 8px;">
+                                    <div class="progress-bar progress-bar-custom" style="width: {{ (qtd / stats.total_geral * 100) }}%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Distribuição por Programa -->
+        <div class="col-lg-6">
+            <div class="stat-card">
+                <h3>Distribuição por Programa</h3>
+                <table class="table table-stats table-hover">
+                    <thead>
+                        <tr>
+                            <th>Programa</th>
+                            <th class="text-center">Inscrições</th>
+                            <th class="text-center">%</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for programa, qtd in stats.por_programa.items() %}
+                        <tr>
+                            <td>{{ programa[:35] }}</td>
+                            <td class="text-center">{{ qtd }}</td>
+                            <td class="text-center">
+                                <strong>{{ "%.1f"|format((qtd / stats.total_geral * 100)) }}%</strong>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Distribuição Geográfica -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="stat-card">
+                <h3>Distribuição por Região do Brasil</h3>
+                <table class="table table-stats table-hover">
+                    <thead>
+                        <tr>
+                            <th>Região</th>
+                            <th class="text-center">Inscrições</th>
+                            <th class="text-center">Percentual</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for regiao, qtd in stats.por_regiao.items() %}
+                        <tr>
+                            <td>{{ regiao }}</td>
+                            <td class="text-center">{{ qtd }}</td>
+                            <td class="text-center">
+                                <strong>{{ "%.1f"|format((qtd / stats.total_geral * 100)) }}%</strong>
+                                <div class="progress mt-1" style="height: 8px;">
+                                    <div class="progress-bar progress-bar-custom" style="width: {{ (qtd / stats.total_geral * 100) }}%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Top Estados -->
+                <!-- Top Estados -->
+        <div class="col-lg-6">
+            <div class="stat-card">
+                <h3>Top 10 Estados</h3>
+                <table class="table table-stats table-hover">
+                    <thead>
+                        <tr>
+                            <th>UF</th>
+                            <th class="text-center">Inscrições</th>
+                            <th class="text-center">%</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for estado, qtd in stats.top_estados %}
+                        <tr>
+                            <td><strong>{{ estado }}</strong></td>
+                            <td class="text-center">{{ qtd }}</td>
+                            <td class="text-center">{{ "%.1f"|format((qtd / stats.total_geral * 100)) }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Dados Demográficos -->
+    {% if stats.por_faixa_etaria %}
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="stat-card">
+                <h3>Distribuição por Faixa Etária</h3>
+                {% set total_idade = stats.por_faixa_etaria.values()|sum %}
+                <table class="table table-stats table-hover">
+                    <thead>
+                        <tr>
+                            <th>Faixa Etária</th>
+                            <th class="text-center">Quantidade</th>
+                            <th class="text-center">%</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set ordem_faixas = ['Até 14 anos', '15-17 anos', '18-22 anos', '23-29 anos', '30-39 anos', '40+ anos'] %}
+                        {% for faixa in ordem_faixas %}
+                            {% if faixa in stats.por_faixa_etaria %}
+                            <tr>
+                                <td>{{ faixa }}</td>
+                                <td class="text-center">{{ stats.por_faixa_etaria[faixa] }}</td>
+                                <td class="text-center">{{ "%.1f"|format((stats.por_faixa_etaria[faixa] / total_idade * 100)) }}%</td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if stats.idades %}
+                <div class="highlight-box">
+                    <strong>Estatísticas de Idade:</strong><br>
+                    Média: {{ "%.1f"|format(stats.idades|sum / stats.idades|length) }} anos |
+                    Mínima: {{ stats.idades|min }} anos |
+                    Máxima: {{ stats.idades|max }} anos
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if stats.por_cor %}
+        <div class="col-lg-6">
+            <div class="stat-card">
+                <h3>Autodeclaração de Raça/Cor</h3>
+                {% set total_cor = stats.por_cor.values()|sum %}
+                <table class="table table-stats table-hover">
+                    <thead>
+                        <tr>
+                            <th>Raça/Cor</th>
+                            <th class="text-center">Quantidade</th>
+                            <th class="text-center">%</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cor, qtd in stats.por_cor.items()|sort(attribute='1', reverse=True) %}
+                        <tr>
+                            <td>{{ cor }}</td>
+                            <td class="text-center">{{ qtd }}</td>
+                            <td class="text-center">{{ "%.1f"|format((qtd / total_cor * 100)) }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <!-- Identidade de Gênero e Escolaridade -->
+    <div class="row">
+        {% if stats.por_identidade_genero %}
+        <div class="col-lg-6">
+            <div class="stat-card">
+                <h3>Identidade de Gênero</h3>
+                {% set total_genero = stats.por_identidade_genero.values()|sum %}
+                <table class="table table-stats table-hover">
+                    <thead>
+                        <tr>
+                            <th>Identidade</th>
+                            <th class="text-center">Quantidade</th>
+                            <th class="text-center">%</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for genero, qtd in stats.por_identidade_genero.items()|sort(attribute='1', reverse=True) %}
+                        <tr>
+                            <td>{{ genero }}</td>
+                            <td class="text-center">{{ qtd }}</td>
+                            <td class="text-center">{{ "%.1f"|format((qtd / total_genero * 100)) }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if stats.por_escolaridade %}
+        <div class="col-lg-6">
+            <div class="stat-card">
+                <h3>Escolaridade</h3>
+                {% set total_escolaridade = stats.por_escolaridade.values()|sum %}
+                <table class="table table-stats table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nível</th>
+                            <th class="text-center">Quantidade</th>
+                            <th class="text-center">%</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for nivel, qtd in stats.por_escolaridade.items()|sort(attribute='1', reverse=True) %}
+                        <tr>
+                            <td>{{ nivel }}</td>
+                            <td class="text-center">{{ qtd }}</td>
+                            <td class="text-center">{{ "%.1f"|format((qtd / total_escolaridade * 100)) }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Evolução por Ano -->
+    {% if stats.por_ano|length > 1 %}
+    <div class="row">
+        <div class="col-12">
+            <div class="stat-card">
+                <h3>Evolução de Inscrições por Ano</h3>
+                <table class="table table-stats table-hover">
+                    <thead>
+                        <tr>
+                            <th>Ano</th>
+                            <th class="text-center">Inscrições</th>
+                            <th class="text-center">% do Total</th>
+                            <th>Visualização</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ano, qtd in stats.por_ano.items() %}
+                        <tr>
+                            <td><strong>{{ ano }}</strong></td>
+                            <td class="text-center">{{ qtd }}</td>
+                            <td class="text-center">{{ "%.1f"|format((qtd / stats.total_geral * 100)) }}%</td>
+                            <td>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar progress-bar-custom" style="width: {{ (qtd / stats.total_geral * 100) }}%">
+                                        {{ qtd }}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+</div>
+{% endblock %}
