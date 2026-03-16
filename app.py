@@ -1927,6 +1927,11 @@ def admin_config():
 
             programa.ativo = (ativo_str == 'on')
 
+            descricao_curta = request.form.get(prefix + 'descricao_curta', '').strip()
+            descricao = request.form.get(prefix + 'descricao', '').strip()
+            programa.descricao_curta = descricao_curta
+            programa.descricao = descricao
+
         db.session.commit()
         flash('Configurações atualizadas com sucesso.', 'success')
         return redirect(url_for('admin_config'))

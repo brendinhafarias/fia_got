@@ -251,7 +251,7 @@
 
 <div class="tabs">
     <button class="tab active" data-tab="email">📧 Configurações de Email</button>
-    <button class="tab" data-tab="periodos">📅 Períodos de Inscrição</button>
+    <button class="tab" data-tab="periodos">📅 Programas</button>
     <button class="tab" data-tab="avisos"> Programações</button>
 </div>
 
@@ -417,7 +417,7 @@
 <div id="periodos" class="tab-content">
     <div class="config-section">
         <div class="config-section-header">
-            <h3>📅 Datas de Inscrição dos Programas</h3>
+            <h3>📅 Configuração dos Programas</h3>
         </div>
         
         <form method="POST">
@@ -441,6 +441,16 @@
                             <label for="programa_{{ programa.id }}_data_fechamento" class="form-label">Data de Fechamento</label>
                             <input type="date" id="programa_{{ programa.id }}_data_fechamento" name="programa_{{ programa.id }}_data_fechamento" class="form-control" value="{% if programa.data_fechamento %}{{ programa.data_fechamento.strftime('%Y-%m-%d') }}{% endif %}">
                         </div>
+                    </div>
+
+                    <div class="form-group mt-2">
+                        <label for="programa_{{ programa.id }}_descricao_curta" class="form-label">Descrição Curta</label>
+                        <input type="text" id="programa_{{ programa.id }}_descricao_curta" name="programa_{{ programa.id }}_descricao_curta" class="form-control" maxlength="250" placeholder="Resumo exibido na listagem de programas (máx. 250 caracteres)" value="{{ programa.descricao_curta or '' }}">
+                    </div>
+
+                    <div class="form-group mt-2">
+                        <label for="programa_{{ programa.id }}_descricao" class="form-label">Descrição Completa</label>
+                        <textarea id="programa_{{ programa.id }}_descricao" name="programa_{{ programa.id }}_descricao" class="form-control" rows="5" placeholder="Descrição detalhada exibida na página do programa">{{ programa.descricao or '' }}</textarea>
                     </div>
                 </div>
             {% endfor %}
